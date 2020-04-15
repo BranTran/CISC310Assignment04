@@ -16,6 +16,10 @@ int main(int argc, char **argv)
 
     // Print opening instuction message
     int page_size = std::stoi(argv[1]);
+    //Error check the page_size
+    //-Make sure it is a number (assignment 1)
+    //-Make sure that it is a power of 2 up to 32718
+    //  +while loop with left shift (<<)
     printStartMessage(page_size);
 
     // Create physical 'memory'
@@ -28,7 +32,16 @@ int main(int argc, char **argv)
     while (command != "exit") {
         // Handle command
         // TODO: implement this!
-
+        // Parse the command on spaces (from assignment 2)
+      
+        // create <text_size> <data_size>
+        // allocate <PID> <var_name> <data_type> <number of elements>
+        // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_N>
+        // free <PID> <var_name>
+        // terminate <PID>
+        // print <object>
+        // otherwise send an error
+      
         // Get next command
         std::cout << "> ";
         std::getline (std::cin, command);
