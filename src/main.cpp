@@ -3,6 +3,7 @@
 #include "mmu.h"
 #include "pagetable.h"
 
+#define MEMORYSIZE 67108864
 void printStartMessage(int page_size);
 std::vector<std::string> splitString(std::string text, char d);
 bool isNonNegativeInteger(char* pointer);
@@ -23,7 +24,7 @@ int main(int argc, char **argv)
     int page_size;
     size_input = argv[1];
     if(!isNonNegativeInteger(size_input)){
-      fprintf(stderr, "Error: entered page size is not a number %s\n",size_input);
+      fprintf(stderr, "Error: entered page size is not a number: %s\n",size_input);
       return 1;
     }
     
@@ -35,71 +36,104 @@ int main(int argc, char **argv)
       //printf("Power of two is: %d\n", power_two);
     }
     if(power_two > 32768 || page_size != power_two){
-      fprintf(stderr, "Error: entered page size is not a power of two %d\n",page_size);
+      fprintf(stderr, "Error: entered page size is not a valid power of two [1024,32768]: %d\n",page_size);
       return 1;
     }
       
     printStartMessage(page_size);
 
     // Create physical 'memory'
-    uint8_t *memory = new uint8_t[67108864]; // 64 MB (64 * 1024 * 1024)
-
+    uint8_t *memory = new uint8_t[MEMORYSIZE]; // 64 MB (64 * 1024 * 1024)
+    //Create mmu
+    Mmu mmu = Mmu(MEMORYSIZE);
+    //Create page table
+    PageTable pagetable = PageTable(page_size);
     // Prompt loop
     std::string command;
     std::cout << "> ";
     std::getline (std::cin, command);
+    char* argument_name;
+    std::string argument;
+    uint32_t pid;
     while (command != "exit") {
         // Handle command
         // TODO: implement this!
         // Parse the command on spaces (from assignment 2)
       std::vector<std::string> argv = splitString(command,' ');
       int argc = argv.size();
-      std::string argument;
       argument = argv[0];
+      argument_name = const_cast<char*>(argument.c_str());
       
         // create <text_size> <data_size>
       if(argument.compare("create") == 0){
 	//Verify create input parameters
 	if(argc!=3){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <text_size> <data_size>\n",argument,argument);
+	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <text_size> <data_size>\n",argument_name,argument_name);
 	}
-	//Validate create inputs
-	char* text_try = const_cast<char*>(argv[1].c_str());
-	if(!isNonNegativeInteger(text_try)){
-	  fprintf(stderr, "Error: entered text_size is not a number %s\n",text_try);
-	  return 1;
+	else{
+	  //Verify create inputs
+	  char* text_try = const_cast<char*>(argv[1].c_str());
+	  if(!isNonNegativeInteger(text_try)){
+	    fprintf(stderr, "Error: entered text_size is not a number: %s\n",text_try);
+	  }
+	  else{
+	    int text_size = atoi(text_try);
+	    //Validate test size
+	    if(text_size < 2048 || text_size > 16384){
+	      fprintf(stderr, "Error: entered text_size is not in range [2048,16384]: %d\n",text_size);
+	    }
+	    else{	    
+	      char* data_try = const_cast<char*>(argv[2].c_str());
+	      if(!isNonNegativeInteger(data_try)){
+		fprintf(stderr, "Error: entered data_size is not a number: %s\n",data_try);
+	      }
+	      else{
+		int data_size = atoi(data_try);		
+		if(data_size < 0 || data_size > 1024){
+		  fprintf(stderr, "Error: entered data_size is not in range [0,1024]: %d\n",data_size);
+		}
+		else{
+		  //Create the new process
+		  pid = mmu.createProcess();
+		  //Print the PID
+		  std::cout<< pid <<std::endl;
+		}
+	      }
+	    }
+	  }
 	}
-	int text_size = atoi(text_try);
-	//int data_size = atoi(argv[2]);
       }
         // allocate <PID> <var_name> <data_type> <number of elements>
       else if(argument.compare("allocate") == 0){
 	if(argc!=5){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_size> <data_type> <number of elements>\n",argument,argument);
+	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_size> <data_type> <number of elements>\n",argument_name,argument_name);
+	  return 1;
 	}
+	
       }
         // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_N>
       else if(argument.compare("set") == 0){
 	if(argc < 5){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name> <offset> <value_0> [<value_1> ...]\n",argument,argument);
+	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name> <offset> <value_0> [<value_1> ...]\n",argument_name,argument_name);
+	  return 1;
 	}
       }
         // free <PID> <var_name>
       else if(argument.compare("free") == 0){
 	if(argc!=3){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name>\n",argument,argument);
+	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name>\n",argument_name,argument_name);
 	}
       }
         // terminate <PID>
       else if(argument.compare("terminate") == 0){
 	if(argc!=2){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID>\n",argument,argument);
+	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID>\n",argument_name,argument_name);
 	}
       }
         // print <object>
       else if(argument.compare("print") == 0){
 	if(argc!=2){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <object>\n",argument,argument);
+	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <object>\n",argument_name,argument_name);
 	}
       }
         // otherwise send an error

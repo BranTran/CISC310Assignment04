@@ -2,6 +2,7 @@
 
 Mmu::Mmu(int memory_size)
 {
+  //  printf("Creating new mmu\n");
     _next_pid = 1024;
     _max_size = memory_size;
 }
@@ -12,6 +13,7 @@ Mmu::~Mmu()
 
 uint32_t Mmu::createProcess()
 {
+  //    printf("Creating new process\n");
     Process *proc = new Process();
     proc->pid = _next_pid;
 
@@ -22,7 +24,7 @@ uint32_t Mmu::createProcess()
     proc->variables.push_back(var);
 
     _processes.push_back(proc);
-
+    //    std::cout<<"New process pid is "<<proc->pid<<std::endl;
     _next_pid++;
     return proc->pid;
 }
