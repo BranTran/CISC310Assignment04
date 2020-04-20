@@ -58,6 +58,8 @@ int main(int argc, char **argv)
     while (command != "exit") {
         // Handle command
         // TODO: implement this!
+      bool isValid = true;
+      bool isVerified = true;
         // Parse the command on spaces (from assignment 2)
       std::vector<std::string> argv = splitString(command,' ');
       int argc = argv.size();
@@ -69,36 +71,44 @@ int main(int argc, char **argv)
 	//Verify create input parameters
 	if(argc!=3){
 	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <text_size> <data_size>\n",argument_name,argument_name);
+	  bool isVerified = false;
 	}
-	else{
+	if(isVerified)
 	  //Verify create inputs
 	  char* text_try = const_cast<char*>(argv[1].c_str());
+	  char* data_try = const_cast<char*>(argv[2].c_str());
+	  
 	  if(!isNonNegativeInteger(text_try)){
 	    fprintf(stderr, "Error: entered text_size is not a number: %s\n",text_try);
+	    isVerified = false;
 	  }
 	  else{
 	    int text_size = atoi(text_try);
-	    //Validate test size
+	  }
+	  if(!isNonNegativeInteger(data_try)){
+	    fprintf(stderr, "Error: entered data_size is not a number: %s\n",data_try);
+	    isVerified = false;
+	  }
+	  else{
+	    int data_size = atoi(data_try);
+	  }
+	    
+	  if(isVerified){
+	    //Validate
 	    if(text_size < 2048 || text_size > 16384){
 	      fprintf(stderr, "Error: entered text_size is not in range [2048,16384]: %d\n",text_size);
+	      isValid = false;
 	    }
-	    else{	    
-	      char* data_try = const_cast<char*>(argv[2].c_str());
-	      if(!isNonNegativeInteger(data_try)){
-		fprintf(stderr, "Error: entered data_size is not a number: %s\n",data_try);
-	      }
-	      else{
-		int data_size = atoi(data_try);		
-		if(data_size < 0 || data_size > 1024){
-		  fprintf(stderr, "Error: entered data_size is not in range [0,1024]: %d\n",data_size);
-		}
-		else{
-		  //Create the new process
-		  pid = mmu.createProcess();
-		  //Print the PID
-		  std::cout<< pid <<std::endl;
-		}
-	      }
+	    if(data_size < 0 || data_size > 1024){
+	      fprintf(stderr, "Error: entered data_size is not in range [0,1024]: %d\n",data_size);
+	      isValid = false;
+	    }
+	    if(isValid){
+	      // GOOD TO GO - DO THE THING
+	      //Create the new process
+	      pid = mmu.createProcess();
+	      //Print the PID
+	      std::cout<< pid <<std::endl;
 	    }
 	  }
 	}
@@ -106,8 +116,68 @@ int main(int argc, char **argv)
         // allocate <PID> <var_name> <data_type> <number of elements>
       else if(argument.compare("allocate") == 0){
 	if(argc!=5){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_size> <data_type> <number of elements>\n",argument_name,argument_name);
-	  return 1;
+	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name> <data_type> <number of elements>\n",argument_name,argument_name);
+	  isVerfied = false;
+	}
+	if(isVerified){
+	  char* pid_try = const_cast<char*>(argv[1].c_str());
+	  std::string var_name = argv[2];
+	  std::string data_type = argv[3];
+	  char* num_try = const_cast<char*>(argv[4].c_str());
+	  int var_size;
+	  
+	  //Proper PID
+	  if(!isNonNegativeInteger(pid_try)){
+	    fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
+	    isVerified = false;
+	  }
+	  else{
+	    int pid = atoi(pid_try);
+	  }
+	  //proper data_type
+	  if(data_type.compare("char")){
+	    var_size = 1;
+	  }
+	  else if(data_type.compare("short")){
+	    var_size = 2;
+	  }
+	  else if(data_type.compare("int")){
+	    var_size = 4;
+	  }
+	  else if(data_type.compare("float")){
+	    var_size = 4;
+	  }
+	  else if(data_type.compare("long")){
+	    var_size = 8;
+	  }
+	  else if(data_type.compare("double")){
+	    var_size = 8;
+	  }
+	  else{
+	    fprintf(stderr, "Error: entered data_type is not recognized %s\nList of Valid Datatypes:\nchar\nshort\nint\nfloat\nlong\ndouble\n",num_try);
+	    isVerified = false;
+	  }
+	  //proper num_elements
+	  if(!isNonNegativeInteger(num_try)){
+	    fprintf(stderr, "Error: entered number of elements is not a number: %s\n",num_try);
+	    isVerified = false;
+	  }
+	  else{
+	    int num_elements = atoi(num_try);
+	  }
+	  
+	  if(isVerified){
+
+	    //VALIDATE DATA
+	    // Does the PID exists
+	    // is the var_name a new variable
+	    // do we have enough size
+	    if(isValid){
+	      // GOOD TO GO - DO THE THING
+	    }
+	    
+	  }
+	  
 	}
 	
       }
