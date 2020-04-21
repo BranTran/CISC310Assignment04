@@ -188,25 +188,110 @@ int main(int argc, char **argv)
 	  return 1;
 	}
       }
-        // free <PID> <var_name>
-      else if(argument.compare("free") == 0){
-	if(argc!=3){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name>\n",argument_name,argument_name);
+    // free <PID> <var_name>
+	else if(argument.compare("free") == 0)
+	{
+		int argumentOk = 0;
+		if(argc!=3)
+		{
+			fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name>\n",argument_name,argument_name);
+			argumentOk++;
+		}
+		else
+		{
+			char* pid_try = const_cast<char*>(argv[1].c_str());
+			char* var_name_try = const_cast<char*>(argv[2].c_str());
+			if(!isNonNegativeInteger(pid_try))
+			{
+				fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
+				argumentOk++;
+			}
+			if(false)//ERROR CHECK var_name
+			{
+				argumentOk++;
+			}
+			if(argumentOk == 0)
+			{
+				int pid = atoi(pid_try);
+				isVerified = true;
+			}
+		}
 	}
-      }
-        // terminate <PID>
-      else if(argument.compare("terminate") == 0){
-	if(argc!=2){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID>\n",argument_name,argument_name);
+    // terminate <PID>
+    else if(argument.compare("terminate") == 0)
+    {
+		int argumentOk = 0;
+    	if(argc!=2)
+    	{
+    		fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID>\n",argument_name,argument_name);
+    		argumentOk++;
+		}
+		else
+		{
+			char* pid_try = const_cast<char*>(argv[1].c_str());
+			if(!isNonNegativeInteger(pid_try))
+			{
+				fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
+				argumentOk++;
+			}
+			if(argumentOk == 0)
+			{
+				int pid = atoi(pid_try);
+				isVerified = true;
+			}
+		}
 	}
-      }
-        // print <object>
-      else if(argument.compare("print") == 0){
-	if(argc!=2){
-	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <object>\n",argument_name,argument_name);
+    // print <object>
+	else if(argument.compare("print") == 0)
+	{
+		int argumentOk = 0;
+		if(argc!=2)
+		{
+			fprintf(stderr,"Error: %s does not have the right number of arguments: %s <object>\n",argument_name,argument_name);
+			argumentOk++;
+		}
+		else
+		{
+			char* object_try_num = const_cast<char*>(argv[1].c_str()); 
+			std::string object_try = argv[1].c_str();
+			if(object_try.compare("mmu") != 0 && object_try.compare("page") != 0 && object_try.compare("processes") != 0 && object_try.find(":") == -1)
+			{
+				fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
+				argumentOk++;
+			}
+			else if(object_try.compare("mmu") == 0 || object_try.compare("page") == 0 || object_try.compare("processes") == 0)
+			{
+			}
+			else
+			{
+				std::vector<std::string> print_pid = splitString(object_try,':');
+				if(print_pid.size() != 2)
+				{
+					fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
+					argumentOk++;
+				}
+				else
+				{
+					char* pid_try = const_cast<char*>(print_pid[0].c_str());
+					char* var_name_try = const_cast<char*>(print_pid[1].c_str());
+					if(!isNonNegativeInteger(pid_try))
+					{
+						fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
+						argumentOk++;
+					}
+					if(false) //ERROR CHECK var_name
+					{
+						argumentOk++;
+					}
+				}
+			}
+			if(argumentOk == 0)
+			{
+				isVerified = true;
+			}
+		}
 	}
-      }
-        // otherwise send an error
+      // otherwise send an error
       else{
 	printf("Error: command not found %s\n",command.c_str());
       }
