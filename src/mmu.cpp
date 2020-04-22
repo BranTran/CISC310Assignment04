@@ -21,12 +21,41 @@ uint32_t Mmu::createProcess()
     var->name = "<FREE_SPACE>";
     var->virtual_address = 0;
     var->size = _max_size;
+    var->type_size = 1;
     proc->variables.push_back(var);
 
     _processes.push_back(proc);
     //    std::cout<<"New process pid is "<<proc->pid<<std::endl;
     _next_pid++;
     return proc->pid;
+}
+
+Process* Mmu::getProcessFromPid(int pid)
+{
+	for(int i = 0; i < _processes.size(); i++)
+	{
+		if(_processes[i]->pid == pid)
+		{
+			return _processes[i];
+		}
+	}
+	return NULL;
+}
+
+Variable* Mmu::getFreeSpace(int size, Process* process)
+{
+	for(int i = 0; i < process->variables.size(); i++)
+	{
+		Variable* variable = process->variables[i];
+		if(variable->name.compare("<FREE_SPACE>"))
+		{
+			if(variable->size >= size)//potential paging issues
+			{
+				return variable;
+			}
+		}	
+	}
+	return NULL;
 }
 
 void Mmu::print()
@@ -40,6 +69,7 @@ void Mmu::print()
         for (j = 0; j < _processes[i]->variables.size(); j++)
         {
             // TODO: print all variables (excluding <FREE_SPACE> entries)
+            std::cout << _processes[i]->pid << "|" << _processes[i]->variables[j]->name << "|" << _processes[i]->variables[j]->virtual_address << "|" << _processes[i]->variables[j]->size<< std::endl;
         }
     }
 }

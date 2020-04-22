@@ -9,11 +9,13 @@ typedef struct Variable {
     std::string name;
     int virtual_address;
     int size;
+    int type_size;
 } Variable;
 
 typedef struct Process {
     uint32_t pid;
     std::vector<Variable*> variables;
+    //number of pages?
 } Process;
 
 class Mmu {
@@ -25,8 +27,10 @@ private:
 public:
     Mmu(int memory_size);
     ~Mmu();
-
+	// we probably want to get a process 
     uint32_t createProcess();
+    Process* getProcessFromPid(int pid);
+    Variable* getFreeSpace(int size, Process* process);
     void print();
 };
 

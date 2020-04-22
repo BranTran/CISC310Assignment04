@@ -2,6 +2,7 @@
 #include <string>
 #include "mmu.h"
 #include "pagetable.h"
+//#include <stdio.h>
 
 #define MEMORYSIZE 67108864
 void printStartMessage(int page_size);
@@ -73,7 +74,9 @@ int main(int argc, char **argv)
 	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <text_size> <data_size>\n",argument_name,argument_name);
 	  bool isVerified = false;
 	}
-	if(isVerified)
+	int text_size = 0;
+	int data_size = 0;
+	if(isVerified){
 	  //Verify create inputs
 	  char* text_try = const_cast<char*>(argv[1].c_str());
 	  char* data_try = const_cast<char*>(argv[2].c_str());
@@ -83,14 +86,14 @@ int main(int argc, char **argv)
 	    isVerified = false;
 	  }
 	  else{
-	    int text_size = atoi(text_try);
+	    text_size = atoi(text_try);
 	  }
 	  if(!isNonNegativeInteger(data_try)){
 	    fprintf(stderr, "Error: entered data_size is not a number: %s\n",data_try);
 	    isVerified = false;
 	  }
 	  else{
-	    int data_size = atoi(data_try);
+	    data_size = atoi(data_try);
 	  }
 	    
 	  if(isVerified){
@@ -114,18 +117,18 @@ int main(int argc, char **argv)
 	}
       }
         // allocate <PID> <var_name> <data_type> <number of elements>
-      else if(argument.compare("allocate") == 0){
+    else if(argument.compare("allocate") == 0){
 	if(argc!=5){
 	  fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name> <data_type> <number of elements>\n",argument_name,argument_name);
-	  isVerfied = false;
+	  isVerified = false;
 	}
 	if(isVerified){
 	  char* pid_try = const_cast<char*>(argv[1].c_str());
 	  std::string var_name = argv[2];
 	  std::string data_type = argv[3];
 	  char* num_try = const_cast<char*>(argv[4].c_str());
-	  int var_size;
-	  
+	  int type_size;
+	  int num_elements;
 	  //Proper PID
 	  if(!isNonNegativeInteger(pid_try)){
 	    fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
@@ -136,22 +139,22 @@ int main(int argc, char **argv)
 	  }
 	  //proper data_type
 	  if(data_type.compare("char")){
-	    var_size = 1;
+	    type_size = 1;
 	  }
 	  else if(data_type.compare("short")){
-	    var_size = 2;
+	    type_size = 2;
 	  }
 	  else if(data_type.compare("int")){
-	    var_size = 4;
+	    type_size = 4;
 	  }
 	  else if(data_type.compare("float")){
-	    var_size = 4;
+	    type_size = 4;
 	  }
 	  else if(data_type.compare("long")){
-	    var_size = 8;
+	    type_size = 8;
 	  }
 	  else if(data_type.compare("double")){
-	    var_size = 8;
+	    type_size = 8;
 	  }
 	  else{
 	    fprintf(stderr, "Error: entered data_type is not recognized %s\nList of Valid Datatypes:\nchar\nshort\nint\nfloat\nlong\ndouble\n",num_try);
@@ -163,7 +166,7 @@ int main(int argc, char **argv)
 	    isVerified = false;
 	  }
 	  else{
-	    int num_elements = atoi(num_try);
+	    num_elements = atoi(num_try);
 	  }
 	  
 	  if(isVerified){
@@ -174,6 +177,49 @@ int main(int argc, char **argv)
 	    // do we have enough size
 	    if(isValid){
 	      // GOOD TO GO - DO THE THING
+	      //get process	      
+	      int var_size = type_size * num_elements;
+	      int number_of_pages = var_size / page_size; //ceiling function
+	      Process* newProcess = mmu.getProcessFromPid(pid);
+	      if(newProcess == NULL)
+	      {
+	      	fprintf(stderr, "Error: process not found, pid: %d\n", pid);
+	      }
+	      //add variable to that process
+	      for(int i = 0; i < newProcess->variables.size(); i++)
+	      {
+	      	Variable* variable = newProcess->variables[i];
+			if(variable->name.compare("<FREE_SPACE>"))
+			{
+				if(variable->size >= var_size)//potential paging issues
+				{
+					Variable* addedVariable = new Variable();
+					addedVariable->name = var_name;
+	      			addedVariable->virtual_address = variable->virtual_address;
+	      			addedVariable->size = var_size;
+	      			addedVariable->type_size = type_size;
+	      			newProcess->variables.insert(newProcess->variables.begin() + i, addedVariable);
+	      			if(addedVariable->size == variable->size)
+	      			{
+	      				newProcess->variables.erase(newProcess->variables.begin() + i + 1);
+	      			}
+	      			else
+	      			{
+	      				variable->size = variable->size - addedVariable->size;
+	      				variable->virtual_address = variable->virtual_address + addedVariable->size;
+	      			}
+	      			pagetable.addEntry(pid, addedVariable->virtual_address / page_size);
+				}
+			}
+		}
+			
+	      //function that changes the value of a variable
+	      // add entry to page table 
+	       //how do we get pagenumber?
+	      //where do we store values in a variable? 
+	      //how does this work?
+	      //if variable is > page, add 2+ entries
+	      //hold current page number and increment when there is a new page
 	    }
 	    
 	  }
@@ -288,10 +334,14 @@ int main(int argc, char **argv)
 			if(argumentOk == 0)
 			{
 				isVerified = true;
+				if(object_try.compare("mmu") == 0)
+				{
+					mmu.print();
+				}
 			}
 		}
 	}
-      // otherwise send an error
+        // otherwise send an error
       else{
 	printf("Error: command not found %s\n",command.c_str());
       }
