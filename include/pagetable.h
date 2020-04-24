@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <vector>
 
 class PageTable {
 private:
@@ -18,5 +19,5 @@ public:
     int getPhysicalAddress(uint32_t pid, int virtual_address);
     void print();
 };
-
+std::vector<std::string> splitString(std::string text, char d);
 #endif // __PAGETABLE_H_

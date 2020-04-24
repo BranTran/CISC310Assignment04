@@ -6,7 +6,7 @@
 
 #define MEMORYSIZE 67108864
 void printStartMessage(int page_size);
-std::vector<std::string> splitString(std::string text, char d);
+//std::vector<std::string> splitString(std::string text, char d);
 bool isNonNegativeInteger(char* pointer);
 
 int main(int argc, char **argv)
@@ -199,6 +199,7 @@ int main(int argc, char **argv)
 	      			addedVariable->size = var_size;
 	      			addedVariable->type_size = type_size;
 	      			newProcess->variables.insert(newProcess->variables.begin() + i, addedVariable);
+	      			printf("size of process is %d\n", newProcess->variables.size());
 	      			if(addedVariable->size == variable->size)
 	      			{
 	      				newProcess->variables.erase(newProcess->variables.begin() + i + 1);
@@ -256,7 +257,7 @@ int main(int argc, char **argv)
 			    fprintf(stderr, "Error: process not found, pid: %d\n", pid);
 			    argumentOk++;
 			  }
-			  if(argumentOK++){
+			  if(argumentOk == 0){
 			    //Check for valid var_name
 			    isVerified = true;
 			  }
@@ -307,7 +308,7 @@ int main(int argc, char **argv)
 				argumentOk++;
 			}
 			//Further processing if <PID>:var_name
-			else if(object_try.find(":") == -1)
+			else if(object_try.find(":") != -1)
 			{
 				std::vector<std::string> print_pid = splitString(object_try,':');
 				if(print_pid.size() != 2)
@@ -315,7 +316,7 @@ int main(int argc, char **argv)
 					fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
 					argumentOk++;
 				}
-				if(argumentOK == 0)
+				if(argumentOk == 0)
 				{
 					char* pid_try = const_cast<char*>(print_pid[0].c_str());
 					char* var_name_try = const_cast<char*>(print_pid[1].c_str());
@@ -333,14 +334,14 @@ int main(int argc, char **argv)
 					    fprintf(stderr, "Error: process not found, pid: %d\n", pid);
 					    argumentOk++;
 					  }
-					  if(argumentOK == 0){
+					  if(argumentOk == 0){
 					    //Check for valid var_name
 					  }
 					    
 					}
 				}
 			}
-
+			std::string var_name;
 			//DO ALL THE PRINTING HERE
 			if(argumentOk == 0)
 			{
@@ -401,7 +402,7 @@ bool isNonNegativeInteger(char* pointer){
   return true;
 }
 
-std::vector<std::string> splitString(std::string text, char d)
+/*std::vector<std::string> splitString(std::string text, char d)
 {
   std::vector<std::string> result;
   int found = text.find_first_of(d,0);
@@ -418,4 +419,4 @@ std::vector<std::string> splitString(std::string text, char d)
     }
   result.push_back(after);
   return result;
-}
+}*/

@@ -58,6 +58,38 @@ Variable* Mmu::getFreeSpace(int size, Process* process)
 	return NULL;
 }
 
+void Mmu::printAllRunningProcesses()
+{
+    int i, j;
+
+    std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
+    std::cout << "------+---------------+--------------+------------" << std::endl;
+    for (i = 0; i < _processes.size(); i++)
+    {
+        for (j = 0; j < _processes[i]->variables.size(); j++)
+        {
+            // TODO: print all variables (excluding <FREE_SPACE> entries)
+            std::cout << _processes[i]->pid << "|" << _processes[i]->variables[j]->name << "|" << _processes[i]->variables[j]->virtual_address << "|" << _processes[i]->variables[j]->size<< std::endl;
+        }
+    }
+}
+
+void Mmu::printValueOfVariable(int pid, std::string var_name)
+{
+    int i, j;
+
+    std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
+    std::cout << "------+---------------+--------------+------------" << std::endl;
+    for (i = 0; i < _processes.size(); i++)
+    {
+        for (j = 0; j < _processes[i]->variables.size(); j++)
+        {
+            // TODO: print all variables (excluding <FREE_SPACE> entries)
+            std::cout << _processes[i]->pid << "|" << _processes[i]->variables[j]->name << "|" << _processes[i]->variables[j]->virtual_address << "|" << _processes[i]->variables[j]->size<< std::endl;
+        }
+    }
+}
+
 void Mmu::print()
 {
     int i, j;

@@ -31,6 +31,8 @@ public:
     uint32_t createProcess();
     Process* getProcessFromPid(int pid);
     Variable* getFreeSpace(int size, Process* process);
+    void printAllRunningProcesses();
+    void printValueOfVariable(int pid, std::string var_name);
     void print();
 };
 

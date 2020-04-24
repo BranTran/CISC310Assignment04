@@ -1,4 +1,8 @@
 #include "pagetable.h"
+#include <string>
+#include <vector>
+
+std::vector<std::string> splitString(std::string text, char d);
 
 PageTable::PageTable(int page_size)
 {
@@ -30,7 +34,7 @@ void PageTable::addEntry(uint32_t pid, int page_number)
     	{
     		isDone = true;
     	}
-    }
+    }printf("%s into frame %d\n", entry, frame);
     _table[entry] = frame;  
 }
 
@@ -66,12 +70,32 @@ void PageTable::print()
 
     for (it = _table.begin(); it != _table.end(); it++)
     {
-      std::string entry = it;
-      std::vector<std::string> pid_pagenum = splitString(entry,"|");
+      std::string entry = (*it).first;
+      
+      std::vector<std::string> pid_pagenum = splitString(entry,'|');
       std::string pid = pid_pagenum[0];
       std::string pagenum = pid_pagenum[1];
 
-      int frame = _table[it];
+      int frame = (*it).second;
       std::cout<<pid<<"|"<<pagenum<<"|"<<frame<<std::endl;
     }
+}
+
+std::vector<std::string> splitString(std::string text, char d)
+{
+  std::vector<std::string> result;
+  int found = text.find_first_of(d,0);
+  std::string before;
+  std::string after;
+  before = text.substr(0, found);
+  after = text.substr(found+1, text.length());
+  while(found != std::string::npos)
+    {
+      result.push_back(before);
+      found = after.find_first_of(d,0);
+      before = after.substr(0, found);
+      after = after.substr(found+1, text.length());
+    }
+  result.push_back(after);
+  return result;
 }
