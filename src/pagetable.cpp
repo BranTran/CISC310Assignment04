@@ -66,6 +66,12 @@ void PageTable::print()
 
     for (it = _table.begin(); it != _table.end(); it++)
     {
-        // TODO: print all pages
+      std::string entry = it;
+      std::vector<std::string> pid_pagenum = splitString(entry,"|");
+      std::string pid = pid_pagenum[0];
+      std::string pagenum = pid_pagenum[1];
+
+      int frame = _table[it];
+      std::cout<<pid<<"|"<<pagenum<<"|"<<frame<<std::endl;
     }
 }

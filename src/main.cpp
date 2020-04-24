@@ -213,13 +213,8 @@ int main(int argc, char **argv)
 			}
 		}
 			
-	      //function that changes the value of a variable
-	      // add entry to page table 
-	       //how do we get pagenumber?
 	      //where do we store values in a variable? 
-	      //how does this work?
 	      //if variable is > page, add 2+ entries
-	      //hold current page number and increment when there is a new page
 	    }
 	    
 	  }
@@ -252,14 +247,20 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
 				argumentOk++;
 			}
-			if(false)//ERROR CHECK var_name
-			{
-				argumentOk++;
-			}
 			if(argumentOk == 0)
 			{
-				int pid = atoi(pid_try);
-				isVerified = true;
+			  int pid = atoi(pid_try);
+			  Process* newProcess = mmu.getProcessFromPid(pid);
+			  if(newProcess == NULL)
+			  {
+			    fprintf(stderr, "Error: process not found, pid: %d\n", pid);
+			    argumentOk++;
+			  }
+			  if(argumentOK++){
+			    //Check for valid var_name
+			    isVerified = true;
+			  }
+			  
 			}
 		}
 	}
@@ -305,10 +306,8 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
 				argumentOk++;
 			}
-			else if(object_try.compare("mmu") == 0 || object_try.compare("page") == 0 || object_try.compare("processes") == 0)
-			{
-			}
-			else
+			//Further processing if <PID>:var_name
+			else if(object_try.find(":") == -1)
 			{
 				std::vector<std::string> print_pid = splitString(object_try,':');
 				if(print_pid.size() != 2)
@@ -316,7 +315,7 @@ int main(int argc, char **argv)
 					fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
 					argumentOk++;
 				}
-				else
+				if(argumentOK == 0)
 				{
 					char* pid_try = const_cast<char*>(print_pid[0].c_str());
 					char* var_name_try = const_cast<char*>(print_pid[1].c_str());
@@ -325,19 +324,43 @@ int main(int argc, char **argv)
 						fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
 						argumentOk++;
 					}
-					if(false) //ERROR CHECK var_name
+					if(argumentOk == 0)
 					{
-						argumentOk++;
+					  int pid = atoi(pid_try);
+					  Process* newProcess = mmu.getProcessFromPid(pid);
+					  if(newProcess == NULL)
+					  {
+					    fprintf(stderr, "Error: process not found, pid: %d\n", pid);
+					    argumentOk++;
+					  }
+					  if(argumentOK == 0){
+					    //Check for valid var_name
+					  }
+					    
 					}
 				}
 			}
+
+			//DO ALL THE PRINTING HERE
 			if(argumentOk == 0)
 			{
-				isVerified = true;
-				if(object_try.compare("mmu") == 0)
-				{
-					mmu.print();
-				}
+			  if(object_try.compare("mmu") == 0)
+			  {
+			    mmu.print();
+			  }			 
+			  if(object_try.compare("page") == 0)
+			  {
+			    pagetable.print();
+			  }
+			  if(object_try.compare("processes") == 0)
+			  {
+			    mmu.printAllRunningProcesses();
+			  }
+			  if(object_try.find(";") != -1)
+			  {
+			    mmu.printValueOfVariable(pid,var_name);
+			  }
+
 			}
 		}
 	}
