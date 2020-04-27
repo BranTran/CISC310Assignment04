@@ -28,7 +28,7 @@ public:
     Mmu(int memory_size);
     ~Mmu();
 	// we probably want to get a process 
-    uint32_t createProcess();
+    uint32_t createProcess(int text_size, int data_size);
     Process* getProcessFromPid(int pid);
     Variable* getFreeSpace(int size, Process* process);
     void printAllRunningProcesses();

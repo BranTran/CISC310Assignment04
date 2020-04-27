@@ -1,7 +1,7 @@
 #include "pagetable.h"
 #include <string>
 #include <vector>
-
+#include <iomanip> // std::setw
 std::vector<std::string> splitString(std::string text, char d);
 
 PageTable::PageTable(int page_size)
@@ -77,9 +77,10 @@ void PageTable::print()
       std::string pagenum = pid_pagenum[1];
 
       int frame = (*it).second;
-      std::cout<<pid<<"|"<<pagenum<<"|"<<frame<<std::endl;
+      std::cout << std::setw(6) << pid << "|" << std::setw(13) << pagenum << "|" << std::setw(14) << frame<<std::endl;
     }
 }
+
 
 std::vector<std::string> splitString(std::string text, char d)
 {
