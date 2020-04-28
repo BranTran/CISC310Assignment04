@@ -140,7 +140,6 @@ int main(int argc, char **argv)
                 }
                 else{
                     pid = atoi(pid_try);
-                    printf("setting pid to: %d\n",pid);
                 }
                 
                 type_size = getDataTypeSizeFromString(data_type, &isVerified);
@@ -159,7 +158,6 @@ int main(int argc, char **argv)
                     //get process	      
                     int var_size = type_size * num_elements;//We do things in terms of bytes
                     int number_of_pages = (var_size + page_size-1) / page_size; //truncate acts as ceiling
-                    printf("sending in %d as pid\n",pid);
                     Process* newProcess = mmu.getProcessFromPid(pid);
                     if(newProcess == NULL)
                     {
@@ -184,7 +182,6 @@ int main(int argc, char **argv)
                                     addedVariable->size = var_size;
                                     addedVariable->type_size = type_size;
                                     newProcess->variables.insert(newProcess->variables.begin() + i, addedVariable);
-                                    printf("size of process is %d\n", newProcess->variables.size());
                                     if(addedVariable->size == variable->size)
                                     {
                                         newProcess->variables.erase(newProcess->variables.begin() + i + 1);
@@ -194,8 +191,11 @@ int main(int argc, char **argv)
                                         variable->size = variable->size - addedVariable->size;
                                         variable->virtual_address = variable->virtual_address + addedVariable->size;
                                     }
-                                    pagetable.addEntry(pid, ((addedVariable->virtual_address + page_size - 1 ) / page_size));
-                                    printf("Successfully added a new variable\n");
+                                    for(int j = 0; j < number_of_pages; j++)
+                                    {
+                                    	pagetable.addEntry(pid, ((addedVariable->virtual_address - newProcess->mem_offset + (page_size*(j+1)) - 1 ) / page_size));
+                                    }
+                                    printf("%d\n", addedVariable->virtual_address);
                                     done = true;
                                     
                                 }
@@ -209,10 +209,39 @@ int main(int argc, char **argv)
         
         // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_N>
         else if(argument.compare("set") == 0){
+            int argumentOk = 0;
             if(argc < 5){
                 fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name> <offset> <value_0> [<value_1> ...]\n",argument_name,argument_name);
                 return 1;
             }
+			char* pid_try = const_cast<char*>(argv[1].c_str());
+            std::string var_name = argv[2];
+            if(!isNonNegativeInteger(pid_try))
+            {
+                fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
+                argumentOk++;
+            }
+            if(argumentOk == 0)
+            {
+                pid = atoi(pid_try);
+                Process* newProcess = mmu.getProcessFromPid(pid);
+                if(newProcess == NULL)
+                {
+                    fprintf(stderr, "Error: process not found, pid: %d\n", pid);
+                    argumentOk++;
+                }
+                if(argumentOk == 0){
+                    //Check for valid var_name
+            		int address = pagetable.getPhysicalAddress(newProcess->pid, mmu.getVirtualAddressOfAVariable(pid, var_name));
+            		//memory[address+offset] = value_1; <- how do we do that?
+            		//step1: convert value to proper data type, store as part of variable
+            		//step2: how to add data into bytes
+            		//step3: loop through the number of bytes per data type
+            		//step4: loop over all the values that we have
+            		//step5: LOTS OF ERROR CHECKING??
+            	}                      
+            }
+       
         }
         // free <PID> <var_name>
         else if(argument.compare("free") == 0)
@@ -234,7 +263,7 @@ int main(int argc, char **argv)
                 }
                 if(argumentOk == 0)
                 {
-                    int pid = atoi(pid_try);
+                    pid = atoi(pid_try);
                     Process* newProcess = mmu.getProcessFromPid(pid);
                     if(newProcess == NULL)
                     {

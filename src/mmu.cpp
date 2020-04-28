@@ -55,6 +55,7 @@ uint32_t Mmu::createProcess(int text_size, int data_size)
     proc->variables.push_back(var);
 
     _processes.push_back(proc);
+    proc->mem_offset = offset;
     //    std::cout<<"New process pid is "<<proc->pid<<std::endl;
     _next_pid++;
     return proc->pid;
@@ -66,7 +67,6 @@ Process* Mmu::getProcessFromPid(int processID)
 	{
 		if(_processes[i]->pid == processID)
 		{
-                    printf("We got a valid process ID back: %d\n", processID);
                     return _processes[i];
 		}
 	}
@@ -89,6 +89,20 @@ Variable* Mmu::getFreeSpace(int size, Process* process)
 	return NULL;
 }
 
+int Mmu::getVirtualAddressOfAVariable(int pid, std::string var_name)
+{
+	Process* process = getProcessFromPid(pid);
+	for(int i = 0; i < process->variables.size(); i++)
+	{
+		Variable* variable = process->variables[i];
+		if(variable->name.compare(var_name) == 0)
+		{
+			return variable->virtual_address;
+		}	
+	}
+	return -1;
+}
+
 void Mmu::printAllRunningProcesses()
 {
     for (int i = 0; i < _processes.size(); i++)
@@ -100,10 +114,15 @@ void Mmu::printAllRunningProcesses()
 void Mmu::printValueOfVariable(int pid, std::string var_name)
 {
     //NEED TO EDIT
+    //include memory
+    //include pageTable
+    //get physical address in memory
+    //convert to proper data type
+    //print it!
     int i, j;
 
-    std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
-    std::cout << "------+---------------+--------------+------------" << std::endl;
+    //std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
+    //std::cout << "------+---------------+--------------+------------" << std::endl;
     for (i = 0; i < _processes.size(); i++)
     {
         for (j = 0; j < _processes[i]->variables.size(); j++)
