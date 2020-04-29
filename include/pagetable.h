@@ -17,6 +17,8 @@ public:
 
     void addEntry(uint32_t pid, int page_number);
     int getPhysicalAddress(uint32_t pid, int virtual_address);
+    int getSizeOfVirtualAddressStillOnPage(int virtual_address, int size);
+    void removePidFromPageTable(int pid);
     void print();
 };
 std::vector<std::string> splitString(std::string text, char d);

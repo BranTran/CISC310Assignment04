@@ -25,6 +25,7 @@ uint32_t Mmu::createProcess(int text_size, int data_size)
     text->virtual_address = offset;
     text->size = text_size;
     text->type_size = 1;
+    text->type_name = "char";
     proc->variables.push_back(text);
     offset = text_size;
     
@@ -34,6 +35,7 @@ uint32_t Mmu::createProcess(int text_size, int data_size)
     data->virtual_address = offset;
     data->size = data_size;
     data->type_size = 1;
+    data->type_name = "char";
     proc->variables.push_back(data);
     offset = offset+data_size;
     
@@ -43,6 +45,7 @@ uint32_t Mmu::createProcess(int text_size, int data_size)
     stack->virtual_address = offset;
     stack->size = 65536;
     stack->type_size = 1;
+    stack->type_name = "char";
     proc->variables.push_back(stack);
     offset = offset+65536;
     
@@ -52,6 +55,7 @@ uint32_t Mmu::createProcess(int text_size, int data_size)
     var->virtual_address = offset;
     var->size = _max_size-offset;
     var->type_size = 1;
+    var->type_name = "char";
     proc->variables.push_back(var);
 
     _processes.push_back(proc);
@@ -103,6 +107,17 @@ int Mmu::getVirtualAddressOfAVariable(int pid, std::string var_name)
 	return -1;
 }
 
+void Mmu::removePidFromMmu(int pid)
+{
+	for (int i = 0; i < _processes.size(); i++)
+    {
+        if(_processes[i]->pid == pid)
+        {
+        	_processes.erase(_processes.begin() + i);
+        }   
+    }
+}
+
 void Mmu::printAllRunningProcesses()
 {
     for (int i = 0; i < _processes.size(); i++)
@@ -111,7 +126,7 @@ void Mmu::printAllRunningProcesses()
     }
 }
 
-void Mmu::printValueOfVariable(int pid, std::string var_name)
+void Mmu::printValueOfVariable(int pid, std::string var_name, PageTable* pagetable, uint8_t *memory)
 {
     //NEED TO EDIT
     //include memory
@@ -119,17 +134,20 @@ void Mmu::printValueOfVariable(int pid, std::string var_name)
     //get physical address in memory
     //convert to proper data type
     //print it!
+    Process* process = getProcessFromPid(pid);
     int i, j;
 
     //std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
     //std::cout << "------+---------------+--------------+------------" << std::endl;
-    for (i = 0; i < _processes.size(); i++)
+    for (i = 0; i < process->variables.size(); i++)
     {
-        for (j = 0; j < _processes[i]->variables.size(); j++)
-        {
-            // TODO: print all variables (excluding <FREE_SPACE> entries)
-            std::cout << _processes[i]->pid << "|" << _processes[i]->variables[j]->name << "|" << _processes[i]->variables[j]->virtual_address << "|" << _processes[i]->variables[j]->size<< std::endl;
-        }
+    	if(process->variables[i]->name.compare(var_name) == 0)
+    	{
+    		//found variable
+    		int address = pagetable->
+getPhysicalAddress(pid, process->variables[i]->virtual_address);
+			
+    	}
     }
 }
 

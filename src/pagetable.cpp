@@ -77,6 +77,38 @@ int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
     return address;
 }
 
+int PageTable::getSizeOfVirtualAddressStillOnPage(int virtual_address, int size)
+{
+	int offset = virtual_address % _page_size;
+	int leftover = _page_size - offset;
+	if(size < leftover)
+	{
+		return size;
+	}
+	else
+	{
+		return leftover;
+	}
+}
+
+void PageTable::removePidFromPageTable(int pidNum)
+{
+	std::map<std::string, int>::iterator it;
+
+    for (it = _table.begin(); it != _table.end(); it++)
+    {
+      std::string entry = (*it).first;
+      
+      std::vector<std::string> pid_pagenum = splitString(entry,'|');
+      std::string pid = pid_pagenum[0];
+      
+      if(pid.compare(std::to_string(pidNum)) == 0)
+      {
+      	_table.erase(entry);
+      }
+    }	
+}
+
 void PageTable::print()
 {
     std::map<std::string, int>::iterator it;

@@ -176,28 +176,38 @@ int main(int argc, char **argv)
                             if(variable->name.compare("<FREE_SPACE>") == 0){
                                 if(variable->size >= var_size)//WARNING: potential paging issues
                                 {
-                                    Variable* addedVariable = new Variable();
-                                    addedVariable->name = var_name;
-                                    addedVariable->virtual_address = variable->virtual_address;
-                                    addedVariable->size = var_size;
-                                    addedVariable->type_size = type_size;
-                                    newProcess->variables.insert(newProcess->variables.begin() + i, addedVariable);
-                                    if(addedVariable->size == variable->size)
-                                    {
-                                        newProcess->variables.erase(newProcess->variables.begin() + i + 1);
-                                    }
-                                    else
-                                    {
-                                        variable->size = variable->size - addedVariable->size;
-                                        variable->virtual_address = variable->virtual_address + addedVariable->size;
-                                    }
-                                    for(int j = 0; j < number_of_pages; j++)
-                                    {
-                                    	pagetable.addEntry(pid, ((addedVariable->virtual_address - newProcess->mem_offset + (page_size*(j+1)) - 1 ) / page_size));
-                                    }
-                                    printf("%d\n", addedVariable->virtual_address);
-                                    done = true;
-                                    
+                                	int fit = pagetable.getSizeOfVirtualAddressStillOnPage(variable->virtual_address, variable->size);
+                                	bool isOk = true;
+                                	if(variable->size != fit && var_size > fit)
+                                	{
+                                		//free space spans over multiple pages
+                                		isOk = ((fit % type_size) == 0);
+                                	}
+                                	if(isOk)
+                              		{
+								        Variable* addedVariable = new Variable();
+								        addedVariable->name = var_name;
+								        addedVariable->virtual_address = variable->virtual_address;
+								        addedVariable->size = var_size;
+								        addedVariable->type_size = type_size;
+								        addedVariable->type_name = data_type;
+								        newProcess->variables.insert(newProcess->variables.begin() + i, addedVariable);
+								        if(addedVariable->size == variable->size)
+								        {
+								            newProcess->variables.erase(newProcess->variables.begin() + i + 1);
+								        }
+								        else
+								        {
+								            variable->size = variable->size - addedVariable->size;
+								            variable->virtual_address = variable->virtual_address + addedVariable->size;
+								        }
+								        for(int j = 0; j < number_of_pages; j++)
+								        {
+								        	pagetable.addEntry(pid, ((addedVariable->virtual_address - newProcess->mem_offset + (page_size*(j+1)) - 1 ) / page_size));
+								        }
+								        printf("%d\n", addedVariable->virtual_address);
+								        done = true;
+								    }
                                 }
                             }
                         }
@@ -297,7 +307,8 @@ int main(int argc, char **argv)
                 if(argumentOk == 0)
                 {
                     int pid = atoi(pid_try);
-                    isVerified = true;
+                    mmu.removePidFromMmu(pid);
+                    pagetable.removePidFromPageTable(pid);
                 }
             }
 	}
@@ -358,7 +369,7 @@ int main(int argc, char **argv)
                     {
                         if(object_try.compare("mmu") == 0)
                         {
-			    mmu.print();
+			    			mmu.print();
                         }			 
                         if(object_try.compare("page") == 0)
                         {
@@ -368,9 +379,9 @@ int main(int argc, char **argv)
                         {
                             mmu.printAllRunningProcesses();
                         }
-                        if(object_try.find(";") != -1)
+                        if(object_try.find(":") != -1)
                         {
-			    mmu.printValueOfVariable(pid,var_name);
+			    			mmu.printValueOfVariable(pid, var_name, &pagetable, memory);
                         }
                         
                     }

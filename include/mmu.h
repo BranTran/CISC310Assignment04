@@ -4,12 +4,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <pagetable.h>
 
 typedef struct Variable {
     std::string name;
     int virtual_address;
     int size;
     int type_size;
+    std::string type_name;
 } Variable;
 
 typedef struct Process {
@@ -34,7 +36,8 @@ public:
     Process* getProcessFromPid(int pid);
     Variable* getFreeSpace(int size, Process* process);
     void printAllRunningProcesses();
-    void printValueOfVariable(int pid, std::string var_name);
+    void printValueOfVariable(int pid, std::string var_name, PageTable* pagetable, uint8_t *memory);
+    void removePidFromMmu(int pid);
     int getVirtualAddressOfAVariable(int pid, std::string var_name);
     void print();
 };
