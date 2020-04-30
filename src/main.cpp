@@ -314,7 +314,7 @@ int main(int argc, char **argv)
                     if(process == NULL)
                     {
                         fprintf(stderr, "Error: process not found, pid: %d\n", pid);
-                        isVaild = false;
+                        isValid = false;
                     }
                     
                     if(isValid){
