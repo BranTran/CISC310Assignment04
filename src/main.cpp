@@ -25,7 +25,8 @@ int main(int argc, char **argv)
     char* size_input;
     int page_size;
     size_input = argv[1];
-    if(!isNonNegativeInteger(size_input)){
+    if(!isNonNegativeInteger(size_input))
+    {
         fprintf(stderr, "Error: entered page size is not a number: %s\n",size_input);
         return 1;
     }
@@ -33,11 +34,13 @@ int main(int argc, char **argv)
     page_size = atoi(size_input);
     //-Make sure that it is a power of 2 up to 32768
     int power_two = 1024;
-    while(page_size != power_two && power_two <= 32768){
+    while(page_size != power_two && power_two <= 32768)
+    {
         power_two = power_two << 1;//Next power of two
         //printf("Power of two is: %d\n", power_two);
     }
-    if(power_two > 32768 || page_size != power_two){
+    if(power_two > 32768 || page_size != power_two)
+    {
         fprintf(stderr, "Error: entered page size is not a valid power of two [1024,32768]: %d\n",page_size);
         return 1;
     }
@@ -57,11 +60,15 @@ int main(int argc, char **argv)
     char* argument_name;
     std::string argument;
     uint32_t pid;
-    while (command != "exit") {
+    while (command != "exit")
+    {
         // Handle command
-        // TODO: implement this!
+        // Check we are getting the right number of inputs
+        // Check if the input is properly formatted
+        // Check if that input is allowed
+        bool isRightSize = true;
+        bool isVerified = true;        
         bool isValid = true;
-        bool isVerified = true;
         // Parse the command on spaces (from assignment 2)
         std::vector<std::string> argv = splitString(command,' ');
         int argc = argv.size();
@@ -70,19 +77,23 @@ int main(int argc, char **argv)
         //**********************************
         // create <text_size> <data_size>
         //**********************************
-        if(argument.compare("create") == 0){
+        if(argument.compare("create") == 0)
+        {
             //Verify create input parameters
-            if(argc!=3){
+            if(argc!=3)
+            {
                 fprintf(stderr,"Error: %s does not have the right number of arguments: %s <text_size> <data_size>\n",argument_name,argument_name);
-                isVerified = false;
+                isRightSize = false;
             }
-            int text_size = 0;
-            int data_size = 0;
-            if(isVerified){
+            if(isRightSize)
+            {
+                int text_size = 0;
+                int data_size = 0;
+                
                 //Verify create inputs
                 char* text_try = const_cast<char*>(argv[1].c_str());
                 char* data_try = const_cast<char*>(argv[2].c_str());
-                
+                //Test text_size
                 if(!isNonNegativeInteger(text_try)){
                     fprintf(stderr, "Error: entered text_size is not a number: %s\n",text_try);
                     isVerified = false;
@@ -90,6 +101,7 @@ int main(int argc, char **argv)
                 else{
                     text_size = atoi(text_try);
                 }
+                //Test data_size
                 if(!isNonNegativeInteger(data_try)){
                     fprintf(stderr, "Error: entered data_size is not a number: %s\n",data_try);
                     isVerified = false;
@@ -108,8 +120,8 @@ int main(int argc, char **argv)
                         fprintf(stderr, "Error: entered data_size is not in range [0,1024]: %d\n",data_size);
                         isValid = false;
                     }
+                    // GOOD TO GO - DO THE THING
                     if(isValid){
-                        // GOOD TO GO - DO THE THING
                         //Create the new process
                         pid = mmu.createProcess(text_size, data_size);
                         //Print the PID
@@ -121,12 +133,15 @@ int main(int argc, char **argv)
         //**********************************
         // allocate <PID> <var_name> <data_type> <number of elements>
         //**********************************
-        else if(argument.compare("allocate") == 0){
-            if(argc!=5){
+        else if(argument.compare("allocate") == 0)
+        {
+            if(argc!=5)
+            {
                 fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name> <data_type> <number of elements>\n",argument_name,argument_name);
-                isVerified = false;
+                isRightSize = false;
             }
-            if(isVerified){
+            if(isRightSize)
+            {
                 char* pid_try = const_cast<char*>(argv[1].c_str());
                 std::string var_name = argv[2];
                 std::string data_type = argv[3];
@@ -134,22 +149,26 @@ int main(int argc, char **argv)
                 int type_size;
                 int num_elements;
                 //Proper PID
-                if(!isNonNegativeInteger(pid_try)){
+                if(!isNonNegativeInteger(pid_try))
+                {
                     fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
                     isVerified = false;
                 }
-                else{
+                else
+                {
                     pid = atoi(pid_try);
                 }
                 
                 type_size = getDataTypeSizeFromString(data_type, &isVerified);
                 
                 //proper num_elements
-                if(!isNonNegativeInteger(num_try)){
+                if(!isNonNegativeInteger(num_try))
+                {
                     fprintf(stderr, "Error: entered number of elements is not a number: %s\n",num_try);
                     isVerified = false;
                 }
-                else{
+                else
+                {
                     num_elements = atoi(num_try);
                 }
                 
@@ -158,235 +177,256 @@ int main(int argc, char **argv)
                     //get process	      
                     int var_size = type_size * num_elements;//We do things in terms of bytes
                     int number_of_pages = (var_size + page_size-1) / page_size; //truncate acts as ceiling
-                    Process* newProcess = mmu.getProcessFromPid(pid);
-                    if(newProcess == NULL)
+                    Process* process = mmu.getProcessFromPid(pid);
+                    if(process == NULL)
                     {
                         fprintf(stderr, "Error: process not found, pid: %d\n", pid);
                         isValid = false;
                         
                     }
-                    if(isValid){
+                    if(isValid)
+                    {
 //                        printf("Got a valid process, now to add the variable\n");
                         //add variable to that process
                         bool done = false;
                         
-                        for(int i = 0; i < newProcess->variables.size()  && !done; i++){
-                            Variable* variable = newProcess->variables[i];
+                        for(int i = 0; i < process->variables.size()  && !done; i++)
+                        {
+                            Variable* free_space = process->variables[i];
                             //Look for a free space hole
-                            if(variable->name.compare("<FREE_SPACE>") == 0){
-                                if(variable->size >= var_size)//WARNING: potential paging issues
+                            if(free_space->name.compare("<FREE_SPACE>") == 0)
+                            {
+                                if(free_space->size >= var_size)//WARNING: potential paging issues
                                 {
-                                	int fit = pagetable.getSizeOfVirtualAddressStillOnPage(variable->virtual_address, variable->size);
-                                	bool isOk = true;
-                                	if(variable->size != fit && var_size > fit)
-                                	{
-                                		//free space spans over multiple pages
-                                		isOk = ((fit % type_size) == 0);
-                                	}
-                                	if(isOk)
-                              		{
-								        Variable* addedVariable = new Variable();
-								        addedVariable->name = var_name;
-								        addedVariable->virtual_address = variable->virtual_address;
-								        addedVariable->size = var_size;
-								        addedVariable->type_size = type_size;
-								        addedVariable->type_name = data_type;
-								        newProcess->variables.insert(newProcess->variables.begin() + i, addedVariable);
-								        if(addedVariable->size == variable->size)
-								        {
-								            newProcess->variables.erase(newProcess->variables.begin() + i + 1);
-								        }
-								        else
-								        {
-								            variable->size = variable->size - addedVariable->size;
-								            variable->virtual_address = variable->virtual_address + addedVariable->size;
-								        }
-								        for(int j = 0; j < number_of_pages; j++)
-								        {
-								        	pagetable.addEntry(pid, ((addedVariable->virtual_address - newProcess->mem_offset + (page_size*(j+1)) - 1 ) / page_size));
-								        }
-								        printf("%d\n", addedVariable->virtual_address);
-								        done = true;
-								    }
+                                    int fit = pagetable.getSizeOfVirtualAddressStillOnPage(free_space->virtual_address, free_space->size);
+                                    bool willFit = true;
+                                    if(free_space->size != fit && var_size > fit)
+                                    {
+                                        //free space spans over multiple pages
+                                        willFit = ((fit % type_size) == 0);
+                                    }
+                                    if(willFit)
+                                    {
+                                        Variable* addedVariable = new Variable();
+                                        addedVariable->name = var_name;
+                                        addedVariable->virtual_address = free_space->virtual_address;
+                                        addedVariable->size = var_size;
+                                        addedVariable->type_size = type_size;
+                                        addedVariable->type_name = data_type;
+                                        process->variables.insert(process->variables.begin() + i, addedVariable);
+                                        if(addedVariable->size == free_space->size)
+                                        {
+                                            process->variables.erase(process->variables.begin() + i + 1);
+                                        }
+                                        else
+                                        {
+                                            free_space->size = free_space->size - addedVariable->size;
+                                            free_space->virtual_address = free_space->virtual_address + addedVariable->size;
+                                        }
+                                        for(int j = 0; j < number_of_pages; j++)
+                                        {
+                                            pagetable.addEntry(pid, ((addedVariable->virtual_address - process->mem_offset + (page_size*(j+1)) - 1 ) / page_size));
+                                        }
+                                        printf("%d\n", addedVariable->virtual_address);
+                                        done = true;
+                                    }//if(willFit)
                                 }
                             }
+                        }
+                        if(!done)
+                        {
+                            fprintf(stderr,"Error: Could not allocate %s for %d because there was no free space large enough\n",var_name,pid);
                         }
                     }//is valid
                 }                
             }        
 	}        
-        
-        
+        // //**********************************
         // set <PID> <var_name> <offset> <value_0> <value_1> ... <value_N>
-        else if(argument.compare("set") == 0){
-            int argumentOk = 0;
+        // //**********************************
+        else if(argument.compare("set") == 0)
+        {
             if(argc < 5){
                 fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name> <offset> <value_0> [<value_1> ...]\n",argument_name,argument_name);
-                return 1;
+                isRightSize = false;
             }
-			char* pid_try = const_cast<char*>(argv[1].c_str());
-            std::string var_name = argv[2];
-            if(!isNonNegativeInteger(pid_try))
+            if(isRightSize)
             {
-                fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
-                argumentOk++;
-            }
-            if(argumentOk == 0)
-            {
-                pid = atoi(pid_try);
-                Process* newProcess = mmu.getProcessFromPid(pid);
-                if(newProcess == NULL)
+                
+                char* pid_try = const_cast<char*>(argv[1].c_str());
+                std::string var_name = argv[2];
+                if(!isNonNegativeInteger(pid_try))
                 {
-                    fprintf(stderr, "Error: process not found, pid: %d\n", pid);
-                    argumentOk++;
+                    fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
+                    isVerified = false;
                 }
-                if(argumentOk == 0){
+                else{
+                    pid = atoi(pid_try);
+                }
+
+                if(isVerified)
+                {
+                    Process* process = mmu.getProcessFromPid(pid);
+                    if(process == NULL)
+                    {
+                        fprintf(stderr, "Error: process not found, pid: %d\n", pid);
+                        isValid = false;
+                    }
+                    if(isValid){
                     //Check for valid var_name
-            		int address = pagetable.getPhysicalAddress(newProcess->pid, mmu.getVirtualAddressOfAVariable(pid, var_name));
+            		int address = pagetable.getPhysicalAddress(process->pid, mmu.getVirtualAddressOfAVariable(pid, var_name));
             		//memory[address+offset] = value_1; <- how do we do that?
             		//step1: convert value to proper data type, store as part of variable
             		//step2: how to add data into bytes
             		//step3: loop through the number of bytes per data type
             		//step4: loop over all the values that we have
             		//step5: LOTS OF ERROR CHECKING??
-            	}                      
-            }
-       
+                    }                      
+                }
+            }  
         }
-        // free <PID> <var_name>
+        // //**********************************
+        // // free <PID> <var_name>
+        // //**********************************
         else if(argument.compare("free") == 0)
         {
-            int argumentOk = 0;
             if(argc!=3)
             {
                 fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID> <var_name>\n",argument_name,argument_name);
-                argumentOk++;
+                isRightSize = false;
             }
-            else
+            if(isRightSize)
             {
                 char* pid_try = const_cast<char*>(argv[1].c_str());
                 char* var_name_try = const_cast<char*>(argv[2].c_str());
                 if(!isNonNegativeInteger(pid_try))
                 {
                     fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
-                    argumentOk++;
+                    isVerified = false;
                 }
-                if(argumentOk == 0)
-                {
+                else{
                     pid = atoi(pid_try);
-                    Process* newProcess = mmu.getProcessFromPid(pid);
-                    if(newProcess == NULL)
+                }
+                if(isVerified)
+                {
+                   
+                    Process* process = mmu.getProcessFromPid(pid);
+                    if(process == NULL)
                     {
                         fprintf(stderr, "Error: process not found, pid: %d\n", pid);
-                        argumentOk++;
+                        isVaild = false;
                     }
-                    if(argumentOk == 0){
-                        //Check for valid var_name
-                        isVerified = true;
+                    
+                    if(isValid){
+                        //Free the variable
+                        
                     }  
                 }
             }
 	}
+        // //**********************************
         // terminate <PID>
+        // //**********************************
         else if(argument.compare("terminate") == 0)
         {
             int argumentOk = 0;
             if(argc!=2)
             {
     		fprintf(stderr,"Error: %s does not have the right number of arguments: %s <PID>\n",argument_name,argument_name);
-    		argumentOk++;
+    		isRightSize = false;
             }
-            else
+            if(isRightSize)
             {
                 char* pid_try = const_cast<char*>(argv[1].c_str());
                 if(!isNonNegativeInteger(pid_try))
                 {
                     fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
-                    argumentOk++;
+                    isVerified = false;
                 }
-                if(argumentOk == 0)
+                if(isVerified)
                 {
-                    int pid = atoi(pid_try);
+                    pid = atoi(pid_try);
                     mmu.removePidFromMmu(pid);
                     pagetable.removePidFromPageTable(pid);
                 }
             }
 	}
+        // //**********************************
         // print <object>
+        // //**********************************
 	else if(argument.compare("print") == 0)
 	{
             int argumentOk = 0;
             if(argc!=2)
             {
                 fprintf(stderr,"Error: %s does not have the right number of arguments: %s <object>\n",argument_name,argument_name);
-                argumentOk++;
+                isRightSize = false;
             }
-		else
-		{
-                    char* object_try_num = const_cast<char*>(argv[1].c_str()); 
-                    std::string object_try = argv[1].c_str();
-                    if(object_try.compare("mmu") != 0 && object_try.compare("page") != 0 && object_try.compare("processes") != 0 && object_try.find(":") == -1)
+            if(isRightSize)
+            {
+                char* object_try_num = const_cast<char*>(argv[1].c_str()); 
+                std::string object_try = argv[1].c_str();
+                if(object_try.compare("mmu") != 0 && object_try.compare("page") != 0 && object_try.compare("processes") != 0 && object_try.find(":") == -1)
+                {
+                    fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
+                    isVerified = false;
+                }
+                //Further processing if <PID>:var_name
+                else if(object_try.find(":") != -1)
+                {
+                    std::vector<std::string> print_pid = splitString(object_try,':');
+                    if(print_pid.size() != 2)
                     {
                         fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
-                        argumentOk++;
+                        isVerified = false;
                     }
-                    //Further processing if <PID>:var_name
-                    else if(object_try.find(":") != -1)
+                    if(isVerified)
                     {
-                        std::vector<std::string> print_pid = splitString(object_try,':');
-                        if(print_pid.size() != 2)
+                        char* pid_try = const_cast<char*>(print_pid[0].c_str());
+                        char* var_name_try = const_cast<char*>(print_pid[1].c_str());
+                        if(!isNonNegativeInteger(pid_try))
                         {
                             fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
-                            argumentOk++;
+                            isVerified = false;
                         }
-                        if(argumentOk == 0)
+                        else
                         {
-                            char* pid_try = const_cast<char*>(print_pid[0].c_str());
-                            char* var_name_try = const_cast<char*>(print_pid[1].c_str());
-                            if(!isNonNegativeInteger(pid_try))
-                            {
-                                fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
-                                argumentOk++;
-                            }
-                            if(argumentOk == 0)
-                            {
-                                int pid = atoi(pid_try);
-                                Process* newProcess = mmu.getProcessFromPid(pid);
-                                if(newProcess == NULL)
-                                {
-                                    fprintf(stderr, "Error: process not found, pid: %d\n", pid);
-                                    argumentOk++;
-                                }
-                                if(argumentOk == 0){
-                                    //Check for valid var_name
-                                }
-                            }
-                        }
-                    }
-                    std::string var_name;
-                    //DO ALL THE PRINTING HERE
-                    if(argumentOk == 0)
-                    {
-                        if(object_try.compare("mmu") == 0)
-                        {
-			    			mmu.print();
-                        }			 
-                        if(object_try.compare("page") == 0)
-                        {
-                            pagetable.print();
-                        }
-                        if(object_try.compare("processes") == 0)
-                        {
-                            mmu.printAllRunningProcesses();
-                        }
-                        if(object_try.find(":") != -1)
-                        {
-			    			mmu.printValueOfVariable(pid, var_name, &pagetable, memory);
+                            pid = atoi(pid_try);
                         }
                         
+                        if(isVerified)
+                        {
+                            Process* process = mmu.getProcessFromPid(pid);
+                            if(process == NULL)
+                            {
+                                fprintf(stderr, "Error: process not found, pid: %d\n", pid);
+                                isVerified = false;
+                            }
+                        }
                     }
-		}
-	}
+                }//else if need to parse
+                if(isVerified){
+                    
+                    std::string var_name;
+                    if(object_try.compare("mmu") == 0)
+                    {
+                        mmu.print();
+                    }			 
+                    if(object_try.compare("page") == 0)
+                    {
+                        pagetable.print();
+                    }
+                    if(object_try.compare("processes") == 0)
+                    {
+                        mmu.printAllRunningProcesses();
+                    }
+                    if(object_try.find(":") != -1)
+                    {
+                        mmu.printValueOfVariable(pid, var_name, &pagetable, memory);
+                    }
+                }
+            }
+        }
         // otherwise send an error
         else{
             printf("Error: command not found %s\n",command.c_str());
