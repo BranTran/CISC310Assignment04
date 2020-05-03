@@ -1,6 +1,10 @@
 #include "mmu.h"
 #include <iostream> //std::hex
 #include <iomanip> //std::setw
+#include <string.h> //memcpy
+void printDataByType(void* data, int data_size, int num_of_elements, std::string type_name);
+
+
 Mmu::Mmu(int memory_size)
 {
   //  printf("Creating new mmu\n");
@@ -136,10 +140,12 @@ void Mmu::printValueOfVariable(int pid, std::string var_name, PageTable* pagetab
     //print it!
     Process* process = getProcessFromPid(pid);
     int i, j;
+    bool found = false;
+    
 
     //std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
     //std::cout << "------+---------------+--------------+------------" << std::endl;
-    for (i = 0; i < process->variables.size(); i++)
+    for (i = 0; i < process->variables.size() && !found; i++)
     {
     	if(process->variables[i]->name.compare(var_name) == 0)
     	{
@@ -147,8 +153,32 @@ void Mmu::printValueOfVariable(int pid, std::string var_name, PageTable* pagetab
     		int address = pagetable->
 getPhysicalAddress(pid, process->variables[i]->virtual_address);
 			
-    	}
+
+
+
+
+
+
+
+
+                Variable* target = process->variables[i];
+                int num_of_elements = target->size / target->type_size;
+                uint8_t data[target->size];
+                //Memcopy copies numBytes bytes from address to address to
+                //void *to, const void *from, size_t(numbytes)
+                memcpy(data,&memory[target->virtual_address],target->size);
+                
+                printDataByType(data,target->size,num_of_elements,target->type_name);
+                
+                found = true;
+                
+        }
     }
+    if(!found)
+    {
+        std::cout << "Error: Could not find variable " << var_name << " in process " << pid << std::endl;
+    }
+    
 }
 
 void Mmu::print()
@@ -175,3 +205,110 @@ void Mmu::print()
         }
     }
 }
+
+void printDataByType(void* data, int data_size, int num_of_elements, std::string type_name)
+{
+    bool more = (num_of_elements > 4);   
+    int i,top;
+    if(more){
+        top = 4;
+        
+    }
+    else{
+        top = num_of_elements;
+    }
+    
+    
+    if(type_name.compare("char") == 0)
+    {
+        char* typed_data = (char*) data;
+        std::cout << typed_data[0];
+        for(i = 1; i < top; i++)
+        {
+            std::cout << ", "<< typed_data[i];
+        }
+
+        if(more){
+            std::cout << ", ... [" << num_of_elements << " items]";
+        }
+        std::cout << std::endl;        
+    }
+    else if(type_name.compare("short") == 0)
+    {
+        short* typed_data = (short*) data;
+        std::cout << typed_data[0];
+        for(i = 1; i < top; i++)
+        {
+            std::cout << ", "<< typed_data[i];
+        }
+
+        if(more){
+            std::cout << ", ... [" << num_of_elements << " items]";
+        }
+        std::cout << std::endl;        
+        
+    }
+    else if(type_name.compare("int") == 0)
+    {
+        int* typed_data = (int*) data;
+        std::cout << typed_data[0];
+        for(i = 1; i < top; i++)
+        {
+            std::cout << ", "<< typed_data[i];
+        }
+
+        if(more){
+            std::cout << ", ... [" << num_of_elements << " items]";
+        }
+        std::cout << std::endl;        
+        
+    }
+    else if(type_name.compare("float") == 0)
+    {
+        float* typed_data = (float*) data;
+        std::cout << typed_data[0];
+        for(i = 1; i < top; i++)
+        {
+            std::cout << ", "<< typed_data[i];
+        }
+
+        if(more){
+            std::cout << ", ... [" << num_of_elements << " items]";
+        }
+        std::cout << std::endl;        
+        
+    }
+    else if(type_name.compare("long") == 0)
+    {
+        long* typed_data = (long*) data;
+        std::cout << typed_data[0];
+        for(i = 1; i < top; i++)
+        {
+            std::cout << ", "<< typed_data[i];
+        }
+
+        if(more){
+            std::cout << ", ... [" << num_of_elements << " items]";
+        }
+        std::cout << std::endl;        
+        
+    }
+    else if(type_name.compare("double") == 0)
+    {
+        double* typed_data = (double*) data;
+        std::cout << typed_data[0];
+        for(i = 1; i < top; i++)
+        {
+            std::cout << ", "<< typed_data[i];
+        }
+
+        if(more){
+            std::cout << ", ... [" << num_of_elements << " items]";
+        }
+        std::cout << std::endl;        
+        
+    }
+    
+        
+}
+

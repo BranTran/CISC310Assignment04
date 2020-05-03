@@ -366,6 +366,8 @@ int main(int argc, char **argv)
             {
                 char* object_try_num = const_cast<char*>(argv[1].c_str()); 
                 std::string object_try = argv[1].c_str();
+                std::string var_name;
+                
                 if(object_try.compare("mmu") != 0 && object_try.compare("page") != 0 && object_try.compare("processes") != 0 && object_try.find(":") == -1)
                 {
                     fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
@@ -383,7 +385,7 @@ int main(int argc, char **argv)
                     if(isVerified)
                     {
                         char* pid_try = const_cast<char*>(print_pid[0].c_str());
-                        char* var_name_try = const_cast<char*>(print_pid[1].c_str());
+                        var_name = print_pid[1];
                         if(!isNonNegativeInteger(pid_try))
                         {
                             fprintf(stderr, "Error: entered object is not valid: %s (accepted values: 'mmu', 'page', 'processes' or a '<PID>:<var_name>\n",object_try_num);
@@ -407,7 +409,6 @@ int main(int argc, char **argv)
                 }//else if need to parse
                 if(isVerified){
                     
-                    std::string var_name;
                     if(object_try.compare("mmu") == 0)
                     {
                         mmu.print();
