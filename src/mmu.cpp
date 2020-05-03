@@ -182,19 +182,9 @@ void Mmu::printAllRunningProcesses()
 
 void Mmu::printValueOfVariable(int pid, std::string var_name, PageTable* pagetable, uint8_t *memory)
 {
-    //NEED TO EDIT
-    //include memory
-    //include pageTable
-    //get physical address in memory
-    //convert to proper data type
-    //print it!
     Process* process = getProcessFromPid(pid);
     int i, j;
     bool found = false;
-    
-
-    //std::cout << " PID  | Variable Name | Virtual Addr | Size" << std::endl;
-    //std::cout << "------+---------------+--------------+------------" << std::endl;
     for (i = 0; i < process->variables.size() && !found; i++)
     {
     	if(process->variables[i]->name.compare(var_name) == 0)
@@ -202,21 +192,12 @@ void Mmu::printValueOfVariable(int pid, std::string var_name, PageTable* pagetab
     		//found variable
     		int address = pagetable->
 getPhysicalAddress(pid, process->variables[i]->virtual_address);
-			
-
-
-
-
-
-
-
-
                 Variable* target = process->variables[i];
                 int num_of_elements = target->size / target->type_size;
                 uint8_t data[target->size];
                 //Memcopy copies numBytes bytes from address to address to
                 //void *to, const void *from, size_t(numbytes)
-                memcpy(data,&memory[target->virtual_address],target->size);
+                memcpy(data,&memory[address],target->size);
                 
                 printDataByType(data,target->size,num_of_elements,target->type_name);
                 

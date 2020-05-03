@@ -1,0 +1,20 @@
+create 2344 876
+create 2673 765
+allocate 1024 hello int 1
+allocate 1024 jello char 5
+set 1024 hello 0 16
+print 1024:hello
+print 1024:hello
+set 1024 jello 0 a b c d e
+print 1024:hello
+allocate 1025 hello float 4
+set 1025 hello 0 1.7
+print 1024:hello
+print 1024:jello
+print 1025:hello
+set 1024 jello 2 g h
+print 1024:jello
+print mmu
+print page
+exit
+

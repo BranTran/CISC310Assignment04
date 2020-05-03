@@ -3,14 +3,15 @@
 #include <string>
 #include "mmu.h"
 #include "pagetable.h"
+#include "string.h"
 //#include <stdio.h>
 
 #define MEMORYSIZE 67108864
 void printStartMessage(int page_size);
-//std::vector<std::string> splitString(std::string text, char d);
 bool isNonNegativeInteger(char* pointer);
 int getDataTypeSizeFromString(std::string data_type, bool* isVerified);
-  
+void setValuesIntoMemory(uint8_t *memory, int offset, int numberOfElements, std::string type_name, std::vector<std::string> argv);
+
 int main(int argc, char **argv)
 {
     // Ensure user specified page size as a command line parameter
@@ -185,6 +186,15 @@ int main(int argc, char **argv)
                         isValid = false;
                         
                     }
+                    for(int i = 0; i < process->variables.size(); i++)
+					{
+						Variable* variable = process->variables[i];
+						if(variable->name.compare(var_name) == 0)
+						{
+							fprintf(stderr, "Error: variable %s already exists in process %d\n", var_name, pid);
+							isValid = false;
+						}	
+					}
                     if(isValid)
                     {
 //                        printf("Got a valid process, now to add the variable\n");
@@ -256,6 +266,8 @@ int main(int argc, char **argv)
                 
                 char* pid_try = const_cast<char*>(argv[1].c_str());
                 std::string var_name = argv[2];
+                char* offset_try = const_cast<char*>(argv[3].c_str());
+                int offset;
                 if(!isNonNegativeInteger(pid_try))
                 {
                     fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
@@ -264,7 +276,14 @@ int main(int argc, char **argv)
                 else{
                     pid = atoi(pid_try);
                 }
-
+                if(!isNonNegativeInteger(offset_try))
+                {
+                    fprintf(stderr, "Error: entered offset is not a number: %s\n",offset_try);
+                    isVerified = false;
+                }
+                else{
+                    offset = atoi(offset_try);
+                }
                 if(isVerified)
                 {
                     Process* process = mmu.getProcessFromPid(pid);
@@ -274,14 +293,21 @@ int main(int argc, char **argv)
                         isValid = false;
                     }
                     if(isValid){
+                    int numberOfElements = argc - 4;
                     //Check for valid var_name
-            		int address = pagetable.getPhysicalAddress(process->pid, mmu.getVirtualAddressOfAVariable(pid, var_name));
+            		int address = pagetable.getPhysicalAddress(process->pid, mmu.getVirtualAddressOfAVariable(pid, var_name)) + offset;
+            		printf("\naddress %d\n", address);
             		//memory[address+offset] = value_1; <- how do we do that?
-            		//step1: convert value to proper data type, store as part of variable
-            		//step2: how to add data into bytes
-            		//step3: loop through the number of bytes per data type
-            		//step4: loop over all the values that we have
-            		//step5: LOTS OF ERROR CHECKING??
+            		std::string type;
+            		for(int i = 0; i < process->variables.size(); i++)
+					{
+						Variable* variable = process->variables[i];
+						if(variable->name.compare(var_name) == 0)
+						{
+							type = variable->type_name;
+						}	
+					}
+            		setValuesIntoMemory(memory, address, numberOfElements, type, argv);
                     }                      
                 }
             }  
@@ -469,22 +495,22 @@ bool isNonNegativeInteger(char* pointer){
 int getDataTypeSizeFromString(std::string data_type, bool* isVerified){
   int type_size = -1;
   //proper data_type
-  if(data_type.compare("char")){
+  if(data_type.compare("char") == 0){
     type_size = 1;
   }
-  else if(data_type.compare("short")){
+  else if(data_type.compare("short") == 0){
     type_size = 2;
   }
-  else if(data_type.compare("int")){
+  else if(data_type.compare("int") == 0){
     type_size = 4;
 	  }
-  else if(data_type.compare("float")){
+  else if(data_type.compare("float") == 0){
     type_size = 4;
   }
-  else if(data_type.compare("long")){
+  else if(data_type.compare("long") == 0){
     type_size = 8;
   }
-  else if(data_type.compare("double")){
+  else if(data_type.compare("double") == 0){
     type_size = 8;
   }
   else{
@@ -493,21 +519,72 @@ int getDataTypeSizeFromString(std::string data_type, bool* isVerified){
   }
   return type_size;
 }
-/*std::vector<std::string> splitString(std::string text, char d)
+
+void setValuesIntoMemory(uint8_t *memory, int offset, int numberOfElements, std::string type_name, std::vector<std::string> argv)
 {
-  std::vector<std::string> result;
-  int found = text.find_first_of(d,0);
-  std::string before;
-  std::string after;
-  before = text.substr(0, found);
-  after = text.substr(found+1, text.length());
-  while(found != std::string::npos)
+	if(type_name.compare("char") == 0)
     {
-      result.push_back(before);
-      found = after.find_first_of(d,0);
-      before = after.substr(0, found);
-      after = after.substr(found+1, text.length());
+        char typed_data[numberOfElements];
+        for(int i = 0; i < numberOfElements; i++)
+        {
+        	//FIXME error checking???
+            typed_data[i] = argv[i + 4][0]; 
+        }
+        memcpy(&memory[offset], typed_data, numberOfElements * sizeof(char));     
     }
-  result.push_back(after);
-  return result;
-}*/
+    else if(type_name.compare("short") == 0)
+    {
+        short typed_data[numberOfElements];
+        for(int i = 0; i < numberOfElements; i++)
+        {
+        	//FIXME error checking???
+            sscanf(argv[i + 4].c_str(), "%hd", &typed_data[i]); 
+        }
+        memcpy(&memory[offset], typed_data, numberOfElements * sizeof(short));              
+    }
+    else if(type_name.compare("int") == 0)
+    {
+        int typed_data[numberOfElements];
+        for(int i = 0; i < numberOfElements; i++)
+        {
+        	//FIXME error checking???
+            typed_data[i] = stoi(argv[i + 4]); 
+        }
+        memcpy(&memory[offset], typed_data, numberOfElements * sizeof(int));               
+    }
+    else if(type_name.compare("float") == 0)
+    {
+        float typed_data[numberOfElements];
+        for(int i = 0; i < numberOfElements; i++)
+        {
+        	//FIXME error checking???
+            typed_data[i] = stof(argv[i + 4]); 
+        }
+        memcpy(&memory[offset], typed_data, numberOfElements * sizeof(float));             
+    }
+    else if(type_name.compare("long") == 0)
+    {
+        long typed_data[numberOfElements];
+        for(int i = 0; i < numberOfElements; i++)
+        {
+        	//FIXME error checking???
+            typed_data[i] = stol(argv[i + 4]); 
+        }
+        memcpy(&memory[offset], typed_data, numberOfElements * sizeof(long));              
+    }
+    else if(type_name.compare("double") == 0)
+    {
+        double typed_data[numberOfElements];
+        for(int i = 0; i < numberOfElements; i++)
+        {
+        	//FIXME error checking???
+            typed_data[i] = stod(argv[i + 4]); 
+        }
+        memcpy(&memory[offset], typed_data, numberOfElements * sizeof(double));               
+    }
+}
+
+
+
+
+
