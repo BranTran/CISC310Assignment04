@@ -54,6 +54,10 @@ void PageTable::addEntry(uint32_t pid, int page_number)
 	}
 }
 
+void PageTable::removeEntry(uint32_t pid, int virtual_address, int size)
+{}
+
+
 int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
 {
     // Convert virtual address to page_number and page_offset

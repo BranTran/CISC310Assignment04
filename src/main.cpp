@@ -1,3 +1,4 @@
+
 #include <iostream>
 #include <string>
 #include "mmu.h"
@@ -298,7 +299,8 @@ int main(int argc, char **argv)
             if(isRightSize)
             {
                 char* pid_try = const_cast<char*>(argv[1].c_str());
-                char* var_name_try = const_cast<char*>(argv[2].c_str());
+                std::string var_name = argv[2];
+                
                 if(!isNonNegativeInteger(pid_try))
                 {
                     fprintf(stderr, "Error: entered PID is not a number: %s\n",pid_try);
@@ -319,7 +321,8 @@ int main(int argc, char **argv)
                     
                     if(isValid){
                         //Free the variable
-                        
+                        mmu.freeVariableFromProcess(pid,var_name,&pagetable);
+                                                
                     }  
                 }
             }

@@ -122,6 +122,56 @@ void Mmu::removePidFromMmu(int pid)
     }
 }
 
+void Mmu::freeVariableFromProcess(int pid, std::string var_name, PageTable* pagetable)
+{
+    bool found;
+    Process* process = getProcessFromPid(pid);
+    for(int i = 0; i < process->variables.size(); i++){
+        Variable* prev;
+        Variable* target = process->variables[i];
+        Variable* next;
+        
+        if(i != 0){
+            prev = process->variables[i-1];
+        }
+
+        if(i < (process->variables.size() - 1))
+        {
+            next = process->variables[i+1];
+        }
+        if(found){//
+//            pagetable.addEntryFromVirtualAddress(pid, target->virtual_address);
+        }
+        if(target->name.compare(var_name) == 0)
+        {
+            //Merge with next
+            if(next->name.compare("<FREE_SPACE>") == 0)
+            {
+                target->name = "<FREE_SPACE>";
+                target->size = target->size + next->size;
+                target->type_size = 1;
+                target->type_name = "char";
+                pagetable->removeEntry(pid, next->virtual_address, next->size);
+                process->variables.erase(process->variables.begin() + i + 1);//Remove next               
+            }
+            //Merge with prev
+            if(prev->name.compare("<FREE_SPACE>") == 0)   
+            {
+                prev->size = prev->size + target->size;
+                pagetable->removeEntry(pid, target->virtual_address, target->size);
+                process->variables.erase(process->variables.begin() + i);//Removes target
+            }
+            found = true;
+        }
+        
+    }
+    if(!found){
+        std::cout << "Error: Could not find variable " << var_name << " in process " << pid << std::endl;
+    }
+    
+}
+
+
 void Mmu::printAllRunningProcesses()
 {
     for (int i = 0; i < _processes.size(); i++)
@@ -211,14 +261,12 @@ void printDataByType(void* data, int data_size, int num_of_elements, std::string
     bool more = (num_of_elements > 4);   
     int i,top;
     if(more){
-        top = 4;
-        
+        top = 4;        
     }
     else{
         top = num_of_elements;
     }
-    
-    
+    //Print based on datatype   
     if(type_name.compare("char") == 0)
     {
         char* typed_data = (char*) data;
@@ -227,7 +275,6 @@ void printDataByType(void* data, int data_size, int num_of_elements, std::string
         {
             std::cout << ", "<< typed_data[i];
         }
-
         if(more){
             std::cout << ", ... [" << num_of_elements << " items]";
         }
@@ -241,12 +288,10 @@ void printDataByType(void* data, int data_size, int num_of_elements, std::string
         {
             std::cout << ", "<< typed_data[i];
         }
-
         if(more){
             std::cout << ", ... [" << num_of_elements << " items]";
         }
-        std::cout << std::endl;        
-        
+        std::cout << std::endl;               
     }
     else if(type_name.compare("int") == 0)
     {
@@ -256,12 +301,10 @@ void printDataByType(void* data, int data_size, int num_of_elements, std::string
         {
             std::cout << ", "<< typed_data[i];
         }
-
         if(more){
             std::cout << ", ... [" << num_of_elements << " items]";
         }
-        std::cout << std::endl;        
-        
+        std::cout << std::endl;                
     }
     else if(type_name.compare("float") == 0)
     {
@@ -271,12 +314,10 @@ void printDataByType(void* data, int data_size, int num_of_elements, std::string
         {
             std::cout << ", "<< typed_data[i];
         }
-
         if(more){
             std::cout << ", ... [" << num_of_elements << " items]";
         }
-        std::cout << std::endl;        
-        
+        std::cout << std::endl;                
     }
     else if(type_name.compare("long") == 0)
     {
@@ -286,12 +327,10 @@ void printDataByType(void* data, int data_size, int num_of_elements, std::string
         {
             std::cout << ", "<< typed_data[i];
         }
-
         if(more){
             std::cout << ", ... [" << num_of_elements << " items]";
         }
-        std::cout << std::endl;        
-        
+        std::cout << std::endl;                
     }
     else if(type_name.compare("double") == 0)
     {
@@ -301,14 +340,10 @@ void printDataByType(void* data, int data_size, int num_of_elements, std::string
         {
             std::cout << ", "<< typed_data[i];
         }
-
         if(more){
             std::cout << ", ... [" << num_of_elements << " items]";
         }
-        std::cout << std::endl;        
-        
-    }
-    
-        
+        std::cout << std::endl;                
+    }         
 }
 

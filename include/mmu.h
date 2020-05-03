@@ -35,11 +35,14 @@ public:
     uint32_t createProcess(int text_size, int data_size);
     Process* getProcessFromPid(int pid);
     Variable* getFreeSpace(int size, Process* process);
+    int getVirtualAddressOfAVariable(int pid, std::string var_name);
+    
+    void removePidFromMmu(int pid);
+    void freeVariableFromProcess(int pid, std::string var_name, PageTable* pagetable);
+    
+    void print();
     void printAllRunningProcesses();
     void printValueOfVariable(int pid, std::string var_name, PageTable* pagetable, uint8_t *memory);
-    void removePidFromMmu(int pid);
-    int getVirtualAddressOfAVariable(int pid, std::string var_name);
-    void print();
 };
 
 #endif // __MMU_H_
