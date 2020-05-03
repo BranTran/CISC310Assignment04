@@ -32,7 +32,7 @@ public:
     Mmu(int memory_size);
     ~Mmu();
 	// we probably want to get a process 
-    uint32_t createProcess(int text_size, int data_size);
+    uint32_t createProcess(int text_size, int data_size, PageTable* pagetable);
     Process* getProcessFromPid(int pid);
     Variable* getFreeSpace(int size, Process* process);
     int getVirtualAddressOfAVariable(int pid, std::string var_name);

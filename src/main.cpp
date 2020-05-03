@@ -125,7 +125,7 @@ int main(int argc, char **argv)
                     // GOOD TO GO - DO THE THING
                     if(isValid){
                         //Create the new process
-                        pid = mmu.createProcess(text_size, data_size);
+                        pid = mmu.createProcess(text_size, data_size, &pagetable);
                         //Print the PID
                         std::cout<< pid <<std::endl;
                     }
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
                     // GOOD TO GO - DO THE THING
                     //get process	      
                     int var_size = type_size * num_elements;//We do things in terms of bytes
-                    int number_of_pages = (var_size + page_size-1) / page_size; //truncate acts as ceiling
+                    int number_of_pages = (var_size) / page_size; //truncate acts as ceiling
                     Process* process = mmu.getProcessFromPid(pid);
                     if(process == NULL)
                     {
@@ -234,9 +234,11 @@ int main(int argc, char **argv)
                                             free_space->size = free_space->size - addedVariable->size;
                                             free_space->virtual_address = free_space->virtual_address + addedVariable->size;
                                         }
-                                        for(int j = 0; j < number_of_pages; j++)
+                                        var_size = var_size - fit;
+                                        for(int j = 1; var_size > 0; j++)
                                         {
-                                            pagetable.addEntry(pid, ((addedVariable->virtual_address - process->mem_offset + (page_size*(j+1)) - 1 ) / page_size));
+                                        	var_size = var_size - page_size;
+                                        	pagetable.addEntry(pid, ((addedVariable->virtual_address) / page_size) + j);
                                         }
                                         printf("%d\n", addedVariable->virtual_address);
                                         done = true;
@@ -295,8 +297,6 @@ int main(int argc, char **argv)
                     if(isValid){
                     int numberOfElements = argc - 4;
                     //Check for valid var_name
-            		int address = pagetable.getPhysicalAddress(process->pid, mmu.getVirtualAddressOfAVariable(pid, var_name)) + offset;
-            		printf("\naddress %d\n", address);
             		//memory[address+offset] = value_1; <- how do we do that?
             		std::string type;
             		for(int i = 0; i < process->variables.size(); i++)
@@ -305,8 +305,10 @@ int main(int argc, char **argv)
 						if(variable->name.compare(var_name) == 0)
 						{
 							type = variable->type_name;
+							offset = offset * variable->type_size;
 						}	
 					}
+					int address = pagetable.getPhysicalAddress(process->pid, mmu.getVirtualAddressOfAVariable(pid, var_name)) + offset;
             		setValuesIntoMemory(memory, address, numberOfElements, type, argv);
                     }                      
                 }

@@ -13,6 +13,11 @@ PageTable::~PageTable()
 {
 }
 
+int PageTable::getPageSize()
+{
+	return _page_size;
+}
+
 void PageTable::addEntry(uint32_t pid, int page_number)
 {
     // Combination of pid and page number act as the key to look up frame number

@@ -16,7 +16,7 @@ Mmu::~Mmu()
 {
 }
 
-uint32_t Mmu::createProcess(int text_size, int data_size)
+uint32_t Mmu::createProcess(int text_size, int data_size, PageTable* pagetable)
 {
     int offset = 0;
     
@@ -53,6 +53,12 @@ uint32_t Mmu::createProcess(int text_size, int data_size)
     proc->variables.push_back(stack);
     offset = offset+65536;
     
+    int number_of_pages = (offset + pagetable->getPageSize()-1) / pagetable->getPageSize();
+	for(int j = 0; j < number_of_pages; j++)
+	{
+		pagetable->addEntry(_next_pid, j);
+	}
+	
     //FREE SPACE    
     Variable *var = new Variable();
     var->name = "<FREE_SPACE>";
@@ -134,23 +140,27 @@ void Mmu::freeVariableFromProcess(int pid, std::string var_name, PageTable* page
         if(i != 0){
             prev = process->variables[i-1];
         }
-
+		
         if(i < (process->variables.size() - 1))
         {
             next = process->variables[i+1];
         }
         if(found){//
 //            pagetable.addEntryFromVirtualAddress(pid, target->virtual_address);
+			var_size = var_size - fit;
+			for(int j = 1; var_size > 0; j++)
+			{
+			var_size = var_size - page_size;
+			pagetable.addEntry(pid, ((addedVariable->virtual_address) / page_size) + j);
+			}
         }
         if(target->name.compare(var_name) == 0)
         {
+        	target->name = "<FREE_SPACE>";
             //Merge with next
             if(next->name.compare("<FREE_SPACE>") == 0)
             {
-                target->name = "<FREE_SPACE>";
                 target->size = target->size + next->size;
-                target->type_size = 1;
-                target->type_name = "char";
                 pagetable->removeEntry(pid, next->virtual_address, next->size);
                 process->variables.erase(process->variables.begin() + i + 1);//Remove next               
             }

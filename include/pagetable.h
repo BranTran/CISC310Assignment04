@@ -14,7 +14,8 @@ private:
 public:
     PageTable(int page_size);
     ~PageTable();
-
+	
+	int getPageSize();
     void addEntry(uint32_t pid, int page_number);
     void removeEntry(uint32_t pid, int virtual_address, int size);
     int getPhysicalAddress(uint32_t pid, int virtual_address);
