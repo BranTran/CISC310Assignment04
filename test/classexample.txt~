@@ -1,0 +1,9 @@
+create 5992 564
+create 14788 296
+allocate 1024 point_x int 1
+allocate 1024 point_y int 1
+allocate 1025 temperature double 1
+allocate 1024 name char 256
+allocate 1024 time long 2
+allocate 1025 pressure double 1
+set 1024 point_x 0 100

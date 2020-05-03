@@ -1,0 +1,11 @@
+create 2048 50
+allocate 1024 hello int 1
+set 1024 hello 0 53
+print processes
+print page
+print mmu
+print 1024:hello
+free 1024 hello
+print page
+print mmu
+exit
