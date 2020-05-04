@@ -75,11 +75,11 @@ uint32_t Mmu::createProcess(int text_size, int data_size, PageTable* pagetable)
     return proc->pid;
 }
 
-Process* Mmu::getProcessFromPid(int processID)
+Process* Mmu::getProcessFromPid(uint32_t pid)
 {
 	for(int i = 0; i < _processes.size(); i++)
 	{
-		if(_processes[i]->pid == processID)
+		if(_processes[i]->pid == pid)
 		{
                     return _processes[i];
 		}
@@ -103,7 +103,7 @@ Variable* Mmu::getFreeSpace(int size, Process* process)
 	return NULL;
 }
 
-int Mmu::getVirtualAddressOfAVariable(int pid, std::string var_name)
+int Mmu::getVirtualAddressOfAVariable(uint32_t pid, std::string var_name)
 {
 	Process* process = getProcessFromPid(pid);
 	for(int i = 0; i < process->variables.size(); i++)
@@ -117,7 +117,7 @@ int Mmu::getVirtualAddressOfAVariable(int pid, std::string var_name)
 	return -1;
 }
 
-void Mmu::removePidFromMmu(int pid)
+void Mmu::removePidFromMmu(uint32_t pid)
 {
 	for (int i = 0; i < _processes.size(); i++)
     {
@@ -128,7 +128,7 @@ void Mmu::removePidFromMmu(int pid)
     }
 }
 
-void Mmu::freeVariableFromProcess(int pid, std::string var_name, PageTable* pagetable)
+void Mmu::freeVariableFromProcess(uint32_t pid, std::string var_name, PageTable* pagetable)
 {
     bool found;
     Process* process = getProcessFromPid(pid);
@@ -145,15 +145,6 @@ void Mmu::freeVariableFromProcess(int pid, std::string var_name, PageTable* page
         {
             next = process->variables[i+1];
         }
-        if(found){//
-//            pagetable.addEntryFromVirtualAddress(pid, target->virtual_address);
-			var_size = var_size - fit;
-			for(int j = 1; var_size > 0; j++)
-			{
-			var_size = var_size - page_size;
-			pagetable.addEntry(pid, ((addedVariable->virtual_address) / page_size) + j);
-			}
-        }
         if(target->name.compare(var_name) == 0)
         {
         	target->name = "<FREE_SPACE>";
@@ -161,15 +152,18 @@ void Mmu::freeVariableFromProcess(int pid, std::string var_name, PageTable* page
             if(next->name.compare("<FREE_SPACE>") == 0)
             {
                 target->size = target->size + next->size;
-                pagetable->removeEntry(pid, next->virtual_address, next->size);
                 process->variables.erase(process->variables.begin() + i + 1);//Remove next               
             }
             //Merge with prev
             if(prev->name.compare("<FREE_SPACE>") == 0)   
             {
                 prev->size = prev->size + target->size;
-                pagetable->removeEntry(pid, target->virtual_address, target->size);
+                pagetable->removeEntry(pid, prev->virtual_address, prev->size);
                 process->variables.erase(process->variables.begin() + i);//Removes target
+            }
+            else
+            {
+            	pagetable->removeEntry(pid, target->virtual_address, target->size);
             }
             found = true;
         }
@@ -190,7 +184,7 @@ void Mmu::printAllRunningProcesses()
     }
 }
 
-void Mmu::printValueOfVariable(int pid, std::string var_name, PageTable* pagetable, uint8_t *memory)
+void Mmu::printValueOfVariable(uint32_t pid, std::string var_name, PageTable* pagetable, uint8_t *memory)
 {
     Process* process = getProcessFromPid(pid);
     int i, j;

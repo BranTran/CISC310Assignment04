@@ -33,16 +33,16 @@ public:
     ~Mmu();
 	// we probably want to get a process 
     uint32_t createProcess(int text_size, int data_size, PageTable* pagetable);
-    Process* getProcessFromPid(int pid);
+    Process* getProcessFromPid(uint32_t pid);
     Variable* getFreeSpace(int size, Process* process);
-    int getVirtualAddressOfAVariable(int pid, std::string var_name);
+    int getVirtualAddressOfAVariable(uint32_t pid, std::string var_name);
     
-    void removePidFromMmu(int pid);
-    void freeVariableFromProcess(int pid, std::string var_name, PageTable* pagetable);
+    void removePidFromMmu(uint32_t pid);
+    void freeVariableFromProcess(uint32_t pid, std::string var_name, PageTable* pagetable);
     
     void print();
     void printAllRunningProcesses();
-    void printValueOfVariable(int pid, std::string var_name, PageTable* pagetable, uint8_t *memory);
+    void printValueOfVariable(uint32_t pid, std::string var_name, PageTable* pagetable, uint8_t *memory);
 };
 
 #endif // __MMU_H_

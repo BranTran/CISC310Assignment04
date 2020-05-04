@@ -60,8 +60,34 @@ void PageTable::addEntry(uint32_t pid, int page_number)
 }
 
 void PageTable::removeEntry(uint32_t pid, int virtual_address, int size)
-{}
+{
+	//step1: find the fit how much from the end?
+	int var_size = size;
+	int fit = getSizeOfVirtualAddressStillOnPage(virtual_address, size);
+	int page_number = virtual_address / _page_size;
+	int j;
+	if(fit != 0)
+	{
+		var_size = var_size - fit;
+		j = 1;
+	}
+	else
+	{
+		j = 0;
+	}
+	while(var_size > _page_size)
+	{
+		var_size = var_size - _page_size;
+		std::string entry = std::to_string(pid) + "|" + std::to_string(page_number + j);
+		_table.erase(entry);
+		j++;
+	}
+		//if fit==0 start of new page otherwise subtract it from size
+	//step2: find current page number
+	//step3: for loop 
+	//var_size = var_size - fit;
 
+}
 
 int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
 {
@@ -78,7 +104,6 @@ int PageTable::getPhysicalAddress(uint32_t pid, int virtual_address)
     // If entry exists, look up frame number and convert virtual to physical address
     int address = -1;
     auto search = _table.find(entry);
-    printf("entry %s \n", entry.c_str());
 	if(search != _table.end())
     {
         // TODO: implement this!
@@ -102,7 +127,7 @@ int PageTable::getSizeOfVirtualAddressStillOnPage(int virtual_address, int size)
 	}
 }
 
-void PageTable::removePidFromPageTable(int pidNum)
+void PageTable::removePidFromPageTable(uint32_t pidNum)
 {
 	std::map<std::string, int>::iterator it;
 
